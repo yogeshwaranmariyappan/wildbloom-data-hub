@@ -23,7 +23,7 @@ export default function HabitatsPage() {
 
   const { data: habitats = [], isLoading } = useQuery({
     queryKey: ["habitats", filterType, filterThreat],
-    queryFn: () => fetchHabitats(filterType || undefined, filterThreat || undefined),
+    queryFn: () => fetchHabitats(filterType && filterType !== "all" ? filterType : undefined, filterThreat && filterThreat !== "all" ? filterThreat : undefined),
   });
 
   const addMutation = useMutation({

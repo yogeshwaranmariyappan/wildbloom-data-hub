@@ -29,7 +29,7 @@ export default function SpeciesPage() {
 
   const { data: species = [], isLoading } = useQuery({
     queryKey: ["species", filterKingdom, filterStatus],
-    queryFn: () => fetchSpecies(filterKingdom || undefined, filterStatus || undefined),
+    queryFn: () => fetchSpecies(filterKingdom && filterKingdom !== "all" ? filterKingdom : undefined, filterStatus && filterStatus !== "all" ? filterStatus : undefined),
   });
 
   const addMutation = useMutation({

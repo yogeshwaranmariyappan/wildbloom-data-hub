@@ -19,7 +19,7 @@ export default function ObservationsPage() {
 
   const { data: observations = [], isLoading } = useQuery({
     queryKey: ["observations", filterStatus],
-    queryFn: () => fetchObservations(filterStatus || undefined),
+    queryFn: () => fetchObservations(filterStatus && filterStatus !== "all" ? filterStatus : undefined),
   });
 
   const { data: speciesList = [] } = useQuery({ queryKey: ["species-all"], queryFn: () => fetchSpecies() });
