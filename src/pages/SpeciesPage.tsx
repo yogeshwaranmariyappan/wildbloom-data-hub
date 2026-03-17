@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchSpecies, createSpecies, deleteSpecies } from "@/lib/api";
+import { fetchSpecies, createSpecies, deleteSpecies, type Species } from "@/lib/api";
 import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
