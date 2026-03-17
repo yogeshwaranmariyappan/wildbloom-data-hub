@@ -1,96 +1,28 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
-// Types
-export interface Species {
-  id: string;
-  common_name: string;
-  scientific_name: string;
-  kingdom: string;
-  conservation_status: "LC" | "NT" | "VU" | "EN" | "CR";
-  population_estimate: number | null;
-  description: string | null;
-  created_at: string;
-}
+// Re-export types
+export type Species = Tables<"species">;
+export type Habitat = Tables<"habitats">;
+export type Observation = Tables<"observations"> & { species?: Species | null; habitat?: Habitat | null };
+export type Survey = Tables<"surveys"> & { habitat?: Habitat | null };
+export type Threat = Tables<"threats">;
+export type Researcher = Tables<"researchers">;
 
-export interface Habitat {
-  id: string;
-  name: string;
-  habitat_type: string;
-  location: string;
-  area_hectares: number | null;
-  threat_level: "low" | "moderate" | "high" | "critical";
-  biodiversity_index: number | null;
-  description: string | null;
-  created_at: string;
-}
-
-export interface Observation {
-  id: string;
-  species_id: string | null;
-  habitat_id: string | null;
-  observer_name: string;
-  observation_date: string;
-  latitude: number | null;
-  longitude: number | null;
-  quantity: number;
-  notes: string | null;
-  status: "pending" | "verified" | "rejected";
-  created_at: string;
-  species?: Species;
-  habitat?: Habitat;
-}
-
-export interface Survey {
-  id: string;
-  title: string;
-  habitat_id: string | null;
-  lead_researcher: string;
-  start_date: string;
-  end_date: string | null;
-  methodology: string | null;
-  status: "planned" | "active" | "completed";
-  species_count: number;
-  created_at: string;
-  habitat?: Habitat;
-}
-
-export interface Threat {
-  id: string;
-  name: string;
-  category: string;
-  severity: "low" | "moderate" | "high" | "critical";
-  affected_area: string;
-  description: string | null;
-  mitigation_plan: string | null;
-  reported_date: string;
-  created_at: string;
-}
-
-export interface Researcher {
-  id: string;
-  name: string;
-  email: string;
-  specialization: string;
-  institution: string;
-  field_experience_years: number;
-  active_surveys: number;
-  created_at: string;
-}
-
-// API functions
+// Species
 export async function fetchSpecies(kingdom?: string, status?: string) {
   let query = supabase.from("species").select("*").order("common_name");
   if (kingdom) query = query.eq("kingdom", kingdom);
   if (status) query = query.eq("conservation_status", status);
   const { data, error } = await query;
   if (error) throw error;
-  return data as Species[];
+  return data;
 }
 
-export async function createSpecies(species: Omit<Species, "id" | "created_at">) {
+export async function createSpecies(species: TablesInsert<"species">) {
   const { data, error } = await supabase.from("species").insert(species).select().single();
   if (error) throw error;
-  return data as Species;
+  return data;
 }
 
 export async function deleteSpecies(id: string) {
@@ -98,19 +30,20 @@ export async function deleteSpecies(id: string) {
   if (error) throw error;
 }
 
+// Habitats
 export async function fetchHabitats(type?: string, threat?: string) {
   let query = supabase.from("habitats").select("*").order("name");
   if (type) query = query.eq("habitat_type", type);
   if (threat) query = query.eq("threat_level", threat);
   const { data, error } = await query;
   if (error) throw error;
-  return data as Habitat[];
+  return data;
 }
 
-export async function createHabitat(habitat: Omit<Habitat, "id" | "created_at">) {
+export async function createHabitat(habitat: TablesInsert<"habitats">) {
   const { data, error } = await supabase.from("habitats").insert(habitat).select().single();
   if (error) throw error;
-  return data as Habitat;
+  return data;
 }
 
 export async function deleteHabitat(id: string) {
@@ -118,61 +51,66 @@ export async function deleteHabitat(id: string) {
   if (error) throw error;
 }
 
+// Observations
 export async function fetchObservations(status?: string) {
   let query = supabase.from("observations").select("*, species(*), habitat:habitats(*)").order("observation_date", { ascending: false });
   if (status) query = query.eq("status", status);
   const { data, error } = await query;
   if (error) throw error;
-  return data as Observation[];
+  return data as unknown as Observation[];
 }
 
-export async function createObservation(obs: Omit<Observation, "id" | "created_at" | "species" | "habitat">) {
+export async function createObservation(obs: TablesInsert<"observations">) {
   const { data, error } = await supabase.from("observations").insert(obs).select().single();
   if (error) throw error;
-  return data as Observation;
+  return data;
 }
 
-export async function updateObservationStatus(id: string, status: "pending" | "verified" | "rejected") {
+export async function updateObservationStatus(id: string, status: string) {
   const { error } = await supabase.from("observations").update({ status }).eq("id", id);
   if (error) throw error;
 }
 
+// Surveys
 export async function fetchSurveys() {
   const { data, error } = await supabase.from("surveys").select("*, habitat:habitats(*)").order("start_date", { ascending: false });
   if (error) throw error;
-  return data as Survey[];
+  return data as unknown as Survey[];
 }
 
-export async function createSurvey(survey: Omit<Survey, "id" | "created_at" | "habitat">) {
+export async function createSurvey(survey: TablesInsert<"surveys">) {
   const { data, error } = await supabase.from("surveys").insert(survey).select().single();
   if (error) throw error;
-  return data as Survey;
+  return data;
 }
 
+// Threats
 export async function fetchThreats() {
   const { data, error } = await supabase.from("threats").select("*").order("reported_date", { ascending: false });
   if (error) throw error;
-  return data as Threat[];
+  return data;
 }
 
-export async function createThreat(threat: Omit<Threat, "id" | "created_at">) {
+export async function createThreat(threat: TablesInsert<"threats">) {
   const { data, error } = await supabase.from("threats").insert(threat).select().single();
   if (error) throw error;
-  return data as Threat;
+  return data;
 }
 
+// Researchers
 export async function fetchResearchers() {
   const { data, error } = await supabase.from("researchers").select("*").order("name");
   if (error) throw error;
-  return data as Researcher[];
+  return data;
 }
 
-export async function createResearcher(researcher: Omit<Researcher, "id" | "created_at">) {
+export async function createResearcher(researcher: TablesInsert<"researchers">) {
   const { data, error } = await supabase.from("researchers").insert(researcher).select().single();
   if (error) throw error;
-  return data as Researcher;
+  return data;
 }
 
+// Dashboard
 export async function fetchDashboardStats() {
   const [species, habitats, observations, surveys, threats, researchers] = await Promise.all([
     supabase.from("species").select("*", { count: "exact", head: true }),
